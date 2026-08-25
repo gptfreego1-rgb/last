@@ -95,8 +95,8 @@ EOF
 # Download wallpaper
 RUN mkdir -p /root/wallpaper \
     && wget -q -O /root/wallpaper/bg.png \
-    https://raw.githubusercontent.com/gptfreego1-rjk/k/refs/heads/main/file_000000005cac81fa9d4eaed1715e5291.png
-
+    https://raw.githubusercontent.com/gptfreego1-rgb/k/refs/heads/main/file_000000005cac81fa9d4eaed1715e5291.png
+    
 # Startup script (dengan password default "123456")
 RUN cat >/startup.sh <<'EOF'
 #!/bin/sh
