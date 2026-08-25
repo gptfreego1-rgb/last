@@ -13,6 +13,8 @@ RUN apk add --no-cache \
     feh \
     wget \
     unzip \
+    nano \
+    bash \
     ttf-dejavu \
     fontconfig \
     xterm \
