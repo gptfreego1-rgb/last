@@ -3,7 +3,6 @@ FROM alpine:3.19
 ENV DISPLAY=:1 \
     HOME=/root
 
-# Install minimal packages
 RUN apk add --no-cache \
     openjdk17-jre-headless \
     firefox \
@@ -18,7 +17,7 @@ RUN apk add --no-cache \
     mesa-dri-gallium \
     && rm -rf /var/cache/apk/*
 
-# Download MicroEmulator + Avatar
+# Download MicroEmulator
 RUN mkdir -p /opt/microemulator \
     && wget -q https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/microemu/microemulator-2.0.4.zip -O /tmp/microemulator.zip \
     && unzip -q /tmp/microemulator.zip -d /opt/microemulator \
@@ -35,23 +34,19 @@ EOF
 
 RUN chmod +x /usr/local/bin/microemu
 
-# Script ganti password VNC (pakai xterm)
+# Script ganti password (AUTO CLOSE)
 RUN cat >/usr/local/bin/change-vnc-password <<'EOF'
 #!/bin/sh
 
 mkdir -p /root/.vnc
 
 xterm -title "Change VNC Password" -e sh -c '
-echo
-echo "=== Change VNC Password ==="
-echo
-echo "Masukkan password baru (minimal 6 karakter):"
-echo
+echo "\n=== Change VNC Password ===\n"
+echo "Masukkan password baru (minimal 6 karakter):\n"
 
 x11vnc -storepasswd /root/.vnc/passwd
 
-echo
-echo "Password berhasil diubah!"
+echo "\n✅ Password berhasil diubah!"
 echo "Restarting VNC server..."
 
 pkill x11vnc 2>/dev/null
@@ -59,20 +54,21 @@ sleep 1
 
 x11vnc -display :1 -rfbport 5901 -rfbauth /root/.vnc/passwd -forever -shared -noxdamage -nowf >/tmp/x11vnc.log 2>&1 &
 
-echo
-echo "VNC server restart complete!"
-echo "Tekan ENTER untuk keluar..."
-read
-'
+echo "\n✅ VNC server restart complete!"
+sleep 1
+' &
+
+# Tunggu sebentar lalu kill xterm setelah selesai
+sleep 0.5
 EOF
 
 RUN chmod +x /usr/local/bin/change-vnc-password
 
-# JWM Config (dengan menu Change Password)
+# JWM Config
 RUN cat >/root/.jwmrc <<'EOF'
 <?xml version="1.0"?>
 <JWM>
-<StartupCommand>feh --bg-fill /root/wallpaper/bg.png</StartupCommand>
+<StartupCommand>feh --bg-color '#2E3440'</StartupCommand>
 <RootMenu onroot="12">
     <Program label="Firefox">firefox</Program>
     <Program label="MicroEmulator">microemu</Program>
@@ -92,34 +88,22 @@ RUN cat >/root/.jwmrc <<'EOF'
 </JWM>
 EOF
 
-# Download wallpaper
-RUN mkdir -p /root/wallpaper \
-    && wget -q -O /root/wallpaper/bg.png \
-    https://raw.githubusercontent.com/gptfreego1-rgb/k/refs/heads/main/file_000000005cac81fa9d4eaed1715e5291.png
-    
-# Startup script (dengan password default "123456")
+# Startup script
 RUN cat >/startup.sh <<'EOF'
 #!/bin/sh
 export DISPLAY=:1
 mkdir -p /root/.vnc
 
-# Set default password 123456 jika belum ada
 if [ ! -f /root/.vnc/passwd ]; then
-    echo "Setting default VNC password: 123456"
     x11vnc -storepasswd 123456 /root/.vnc/passwd >/dev/null
 fi
 
-# Cleanup
 rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
 
-# Start X server
 Xvfb :1 -screen 0 800x600x16 &
 sleep 1
 
-# Start JWM
 jwm &
-
-# Start VNC
 x11vnc -display :1 -rfbport 5901 -rfbauth /root/.vnc/passwd -forever -shared -noxdamage -nowf &
 
 wait
