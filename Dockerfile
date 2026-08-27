@@ -27,7 +27,7 @@ RUN mkdir -p /opt/microemulator \
     && rm -f /tmp/microemulator.zip
 
 # Download Avatar
-RUN wget -q https://files.catbox.moe/9wzwpo.zip \
+RUN wget -q https://files.catbox.moe/sllphh.ja \
     -O /opt/microemulator/avatar.jar
 
 # Download Wallpaper
